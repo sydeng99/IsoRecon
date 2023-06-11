@@ -86,3 +86,58 @@ class Generator2(nn.Module):
                     init.constant_(m.bias, 0)
 
 
+
+class Discriminator1(nn.Module):
+    def __init__(self, input_nc):
+        super(Discriminator1, self).__init__()
+
+        # A bunch of convolutions one after another
+        model = [   nn.Conv2d(input_nc,32,kernel_size=(3,7),stride=(1,2),padding=1),
+                    nn.LeakyReLU(0.2, inplace=True) ]
+
+        model += [  nn.Conv2d(32, 64, kernel_size=(3,7), stride=(1,2), padding=1),
+                    nn.InstanceNorm2d(128),
+                    nn.LeakyReLU(0.2, inplace=True) ]
+
+        model += [  nn.Conv2d(64, 128, kernel_size=(3,7), stride=(1,2), padding=1),
+                    nn.InstanceNorm2d(128),
+                    nn.LeakyReLU(0.2, inplace=True) ]
+        model += [nn.Conv2d(128, 1, kernel_size=(3,7), padding=1)]
+
+        self.model = nn.Sequential(*model)
+
+
+    def forward(self, x):
+        x =  self.model(x)
+        y = F.avg_pool2d(x, x.size()[2:]).view(x.size()[0])
+        return y
+
+class Discriminator2(nn.Module):
+    def __init__(self, input_nc):
+        super(Discriminator2, self).__init__()
+
+        # A bunch of convolutions one after another
+        model = [   nn.Conv2d(input_nc, 32, 4, stride=2, padding=1),
+                    nn.LeakyReLU(0.2, inplace=True) ]
+
+        model += [  nn.Conv2d(32, 64, 4, stride=2, padding=1),
+                    nn.InstanceNorm2d(64),
+                    nn.LeakyReLU(0.2, inplace=True) ]
+
+        model += [  nn.Conv2d(64, 128, 4, stride=2, padding=1),
+                    nn.InstanceNorm2d(128),
+                    nn.LeakyReLU(0.2, inplace=True) ]
+
+        model += [  nn.Conv2d(128, 128, 4, padding=1),
+                    nn.InstanceNorm2d(128),
+                    nn.LeakyReLU(0.2, inplace=True) ]
+
+        # FCN classification layer
+        model += [nn.Conv2d(128, 1, 4, padding=1)]
+        self.model = nn.Sequential(*model)
+
+
+    def forward(self, x):
+        x =  self.model(x)
+        y=F.avg_pool2d(x, x.size()[2:]).view(x.size()[0])
+        return y
